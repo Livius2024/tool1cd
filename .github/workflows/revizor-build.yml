@@ -18,7 +18,7 @@ jobs:
       - name: Install dependencies (vcpkg, static)
         shell: pwsh
         run: |
-          & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install boost-filesystem boost-system boost-regex boost-random boost-uuid boost-crc boost-iostreams zlib --triplet x64-windows-static
+          & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install boost-filesystem boost-system boost-regex boost-random boost-uuid boost-crc boost-iostreams boost-algorithm zlib --triplet x64-windows-static
       - name: Configure
         shell: pwsh
         run: |
