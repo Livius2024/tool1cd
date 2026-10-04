@@ -914,7 +914,7 @@ bool Table::export_to_xml(const std::string &_filename, bool blob_to_file, bool 
 		curindex= *primary;
 	}
 
-	int image_count; // количество полей с типом image
+	int image_count = 0; // количество полей с типом image (initialised: garbage made exports of NULL-indexed tables fail, Revizor D1 spike)
 	for (auto field : fields) {
 		f.WriteString(fpart1);
 		f.WriteString(field->get_name());

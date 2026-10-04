@@ -39,8 +39,9 @@ namespace Convert {
 
 string from_binary(const uint8_t *fr, int32_t length)
 {
+	// Exactly two hex digits per byte: a terminating NUL inside std::string leaks NUL bytes into exports (Revizor D1 spike).
 	string result;
-	result.resize((length + 1) * 2);
+	result.resize(length * 2);
 
 	for(int32_t i = 0; i < length; i++) {
 		char sym = '0' + (fr[i] >> 4);
@@ -55,17 +56,15 @@ string from_binary(const uint8_t *fr, int32_t length)
 		result[(i << 1) + 1] = sym;
 	}
 
-	result[length << 1] = 0;
-
 	return result;
 }
 
 string from_varbinary(const uint8_t *fr, int32_t length)
 {
 	string result;
-	result.resize((length + 1) * 2);
 
 	int32_t m = *(int16_t*)fr; // длина + смещение
+	result.resize(m * 2); // exactly two hex digits per stored byte, no trailing NULs (Revizor D1 spike)
 	for(int32_t i = 0; i < m; i++) {
 		char sym = '0' + (fr[i + 2] >> 4);
 		if(sym > '9') {
@@ -78,8 +77,6 @@ string from_varbinary(const uint8_t *fr, int32_t length)
 		}
 		result[(i << 1) + 1] = sym;
 	}
-
-	result[m << 1] = 0;
 
 	return result;
 }
