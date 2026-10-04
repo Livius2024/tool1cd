@@ -1,0 +1,61 @@
+# Build of the command-line tool and its tests, from source, for Revizor.
+# No GUI (NOGUI=ON): no Qt or Vulkan. The SHA-256 of each binary is printed in the log.
+name: revizor-build
+
+on:
+  push:
+    branches: [revizor-ci]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows-x64:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies (vcpkg, static)
+        shell: pwsh
+        run: |
+          & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install boost-filesystem boost-system boost-regex boost-random boost-uuid boost-crc boost-iostreams zlib --triplet x64-windows-static
+      - name: Configure
+        shell: pwsh
+        run: |
+          cmake -S . -B build -DNOGUI=ON -DCMAKE_BUILD_TYPE=Release `
+            -DVCPKG_TARGET_TRIPLET=x64-windows-static `
+            -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+      - name: Build
+        run: cmake --build build --config Release --target ctool1cd testproject
+      - name: Unit tests
+        run: build\bin\Release\testproject.exe
+      - name: SHA-256
+        shell: pwsh
+        run: Get-FileHash build\bin\Release\ctool1cd.exe -Algorithm SHA256 | Format-List
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ctool1cd-win-x64
+          path: |
+            build/bin/Release/ctool1cd.exe
+            COPYING
+
+  linux-x64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: sudo apt-get update -q && sudo apt-get install -q -y cmake g++ libboost-filesystem-dev libboost-system-dev libboost-regex-dev zlib1g-dev
+      - name: Configure
+        run: cmake -S . -B build -DNOGUI=ON -DCMAKE_BUILD_TYPE=Release
+      - name: Build
+        run: cmake --build build --target ctool1cd testproject -j 4
+      - name: Unit tests
+        run: build/bin/testproject
+      - name: SHA-256
+        run: sha256sum build/bin/ctool1cd
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ctool1cd-linux-x64
+          path: |
+            build/bin/ctool1cd
+            COPYING
