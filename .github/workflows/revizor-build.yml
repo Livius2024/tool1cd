@@ -46,9 +46,10 @@ jobs:
       - name: Install dependencies
         run: sudo apt-get update -q && sudo apt-get install -q -y cmake g++ libboost-filesystem-dev libboost-system-dev libboost-regex-dev zlib1g-dev
       - name: Configure
-        # NOGUI forces single-threaded static Boost, which Ubuntu does not ship; use the multithreaded static variant.
+        # NOGUI asks for a single-threaded, static-runtime Boost, which Ubuntu does not ship; use the variant it has.
         run: |
           sed -i 's/set (Boost_USE_MULTITHREADED OFF)/set (Boost_USE_MULTITHREADED ON)/' CMakeLists.txt
+          sed -i 's/set (Boost_USE_STATIC_RUNTIME ON)/set (Boost_USE_STATIC_RUNTIME OFF)/' CMakeLists.txt
           cmake -S . -B build -DNOGUI=ON -DCMAKE_BUILD_TYPE=Release
       - name: Build
         run: cmake --build build --target ctool1cd testproject -j 4
